@@ -1,0 +1,1325 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>NI.Email.Mime</name>
+    </assembly>
+    <members>
+        <member name="T:NI.Email.Mime.AbstractContentHandler">
+            <summary>
+            Abstract <c>ContentHandler</c> with default implementations of all
+            the methods of the <c>ContentHandler</c> interface.
+            </summary>
+        </member>
+        <member name="T:NI.Email.Mime.IContentHandler">
+            <summary>
+            <p>
+            Receives notifications of the content of a plain RFC822 or MIME message.
+            Implement this interface and register an instance of that implementation
+            with a <c>MimeStreamParser</c> instance using its 
+            {@link org.mime4j.MimeStreamParser#setContentHandler(ContentHandler)}
+            method. The parser uses the <c>ContentHandler</c> instance to report
+            basic message-related events like the start and end of the body of a
+            part in a multipart MIME entity.
+            </p>
+            <p>
+            Events will be generated in the order the corresponding elements occur in
+            the message stream parsed by the parser. E.g.:
+            <code>
+                 startMessage()
+                     startHeader()
+                         field(...)
+                         field(...)
+                         ...
+                     endHeader()
+                     startMultipart()
+                         preamble(...)
+                         startBodyPart()
+                             startHeader()
+                                 field(...)
+                                 field(...)
+                                 ...
+                             endHeader()
+                             body()
+                         endBodyPart()
+                         startBodyPart()
+                             startHeader()
+                                 field(...)
+                                 field(...)
+                                 ...
+                             endHeader()
+                             body()
+                         endBodyPart()
+                         epilogue(...)
+                     endMultipart()
+                 endMessage()
+            </code>
+            The above shows an example of a MIME message consisting of a multipart
+            body containing two body parts.
+            </p>
+            <p>
+            See MIME RFCs 2045-2049 for more information on the structure of MIME 
+            messages and RFC 822 and 2822 for the general structure of Internet mail
+            messages.
+            </p>
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.IContentHandler.StartMessage">
+            <summary>
+            Called when a new message starts (a top level message or an embedded 
+            rfc822 message).
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.IContentHandler.EndMessage">
+            <summary>
+            Called when a message ends.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.IContentHandler.StartBodyPart">
+            <summary>
+            Called when a new body part starts inside a
+            <c>multipart/*</c> entity.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.IContentHandler.EndBodyPart">
+            <summary>
+            Called when a body part ends.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.IContentHandler.StartHeader">
+            <summary>
+            Called when a header (of a message or body part) is about to be parsed.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.IContentHandler.Field(System.String)">
+            <summary>
+            Called for each field of a header.
+            </summary>
+            <param name="fieldData">
+            the raw contents of the field 
+            (<c>Field-Name: field value</c>). The value will not be unfolded.
+            </param>
+        </member>
+        <member name="M:NI.Email.Mime.IContentHandler.EndHeader">
+            <summary>
+            Called when there are no more header fields in a message or body part.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.IContentHandler.Preamble(System.IO.Stream)">
+            <summary>
+            Called for the preamble (whatever comes before the first body part)
+            of a <c>multipart/*</c> entity.
+            </summary>
+            <param name="inputStream">used to get the contents of the preamble.</param>
+            <exception cref="T:System.IO.IOException">should be thrown on I/O errors.</exception>
+        </member>
+        <member name="M:NI.Email.Mime.IContentHandler.Epilogue(System.IO.Stream)">
+            <summary>
+            Called for the epilogue (whatever comes after the final body part) 
+            of a <c>multipart/*</c> entity.
+            </summary>
+            <param name="inputStream">used to get the contents of the epilogue.</param>
+            <exception cref="T:System.IO.IOException">should be thrown on I/O errors.</exception>
+        </member>
+        <member name="M:NI.Email.Mime.IContentHandler.StartMultipart(NI.Email.Mime.BodyDescriptor)">
+            <summary>
+            Called when the body of a multipart entity is about to be parsed.
+            </summary>
+            <param name="bd">
+            encapsulates the values (either read from the 
+            message stream or, if not present, determined implictly 
+            as described in the 
+            MIME rfc:s) of the <c>Content-Type</c> and 
+            <c>Content-Transfer-Encoding</c> header fields.
+            </param>
+        </member>
+        <member name="M:NI.Email.Mime.IContentHandler.EndMultipart">
+            <summary>
+            Called when the body of an entity has been parsed.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.IContentHandler.Body(NI.Email.Mime.BodyDescriptor,System.IO.Stream)">
+            <summary>
+            Called when the body of a discrete (non-multipart) entity is about to 
+            be parsed.
+            </summary>
+            <param name="bd"><see cref="M:NI.Email.Mime.IContentHandler.StartMultipart(NI.Email.Mime.BodyDescriptor)"/></param>
+            <param name="inputStream">
+            the contents of the body. NOTE: this is the raw body contents 
+            - it will not be decoded if encoded. The <c>bd</c>
+            parameter should be used to determine how the stream data
+            should be decoded.
+            </param>
+            <exception cref="T:System.IO.IOException">should be thrown on I/O errors.</exception>
+        </member>
+        <member name="M:NI.Email.Mime.IContentHandler.Raw(System.IO.Stream)">
+            <summary>
+            Called when a new entity (message or body part) starts and the 
+            parser is in <c>raw</c> mode.
+            </summary>
+            <param name="inputStream">the raw contents of the entity.</param>
+            <exception cref="T:System.IO.IOException">should be thrown on I/O errors.</exception>
+        </member>
+        <member name="T:NI.Email.Mime.BodyDescriptor">
+            <summary>
+            Encapsulates the values of the MIME-specific header fields 
+            (which starts with <c>Content-</c>). 
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.BodyDescriptor.#ctor">
+            <summary>
+            Creates a new root <c>BodyDescriptor</c> instance.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.BodyDescriptor.#ctor(NI.Email.Mime.BodyDescriptor)">
+            <summary>
+            Creates a new <c>BodyDescriptor</c> instance.
+            </summary>
+            <param name="parent">parent the descriptor of the parent
+            or <c>null</c> if this is the root descriptor.</param>
+        </member>
+        <member name="M:NI.Email.Mime.BodyDescriptor.AddField(System.String,System.String)">
+            <summary>
+            Should be called for each <c>Content-</c> header field of 
+            a MIME message or part.
+            </summary>
+            <param name="name">the field name.</param>
+            <param name="value">the field value.</param>
+        </member>
+        <member name="T:NI.Email.Mime.CloseShieldStream">
+            <summary>
+            InputStream that shields its underlying input stream from
+            being closed.
+            </summary>
+        </member>
+        <member name="T:NI.Email.Mime.IO.FilterStream">
+            <summary>
+            A <code>FilterInputStream</code> contains
+            some other input stream, which it uses as
+            its  basic source of data, possibly transforming
+            the data along the way or providing  additional
+            functionality. The class <code>FilterInputStream</code>
+            itself simply overrides all  methods of
+            <code>InputStream</code> with versions that
+            pass all requests to the contained  input
+            stream. Subclasses of <code>FilterInputStream</code>
+            may further override some of  these methods
+            and may also provide additional methods
+            and fields. 	
+            </summary>
+        </member>
+        <member name="T:NI.Email.Mime.Decoder.Base64InputStream">
+            <summary>
+            Performs Base-64 decoding on an underlying stream.
+            </summary>
+        </member>
+        <member name="T:NI.Email.Mime.IO.ReadByteStream">
+            <summary>
+            Stream wrapper that uses only 'ReadByte' method when reading from stream.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Decoder.Base64InputStream.FillBuffer">
+            <summary>
+            Retrieve data from the underlying stream, decode it,
+            and put the results in the byteq.
+            @throws IOException
+            </summary>
+        </member>
+        <member name="T:NI.Email.Mime.Decoder.DecoderUtil">
+            <summary>
+            Static methods for decoding strings, byte arrays and encoded words.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Decoder.DecoderUtil.DecodeBaseQuotedPrintable(System.String)">
+            <summary>
+            Decodes a string containing quoted-printable encoded data. 
+            </summary>
+            <param name="s">the string to decode.</param>
+            <returns>the decoded bytes.</returns>
+        </member>
+        <member name="M:NI.Email.Mime.Decoder.DecoderUtil.DecodeBase64(System.String)">
+            <summary>
+            Decodes a string containing base64 encoded data. 
+            </summary>
+            <param name="s">string to decode.</param>
+            <returns>the decoded bytes.</returns>
+        </member>
+        <member name="M:NI.Email.Mime.Decoder.DecoderUtil.DecodeB(System.String,System.String)">
+            <summary>
+            Decodes an encoded word encoded with the 'B' encoding (described in 
+            RFC 2047) found in a header field body.
+            </summary>
+            <param name="encodedWord">the encoded word to decode.</param>
+            <param name="charset">the .NET charset to use.</param>
+            <returns>the decoded string.</returns>
+        </member>
+        <member name="M:NI.Email.Mime.Decoder.DecoderUtil.DecodeQ(System.String,System.String)">
+            <summary>
+            Decodes an encoded word encoded with the 'Q' encoding (described in 
+            RFC 2047) found in a header field body.
+            </summary>
+            <param name="charset">the .NET charset to use.</param>
+            <param name="encodedWord">the encoded word to decode.</param>
+            <returns>the decoded string.</returns>
+        </member>
+        <member name="M:NI.Email.Mime.Decoder.DecoderUtil.DecodeEncodedWords(System.String)">
+            <summary>
+            Decodes a string containing encoded words as defined by RFC 2047.
+            Encoded words in have the form 
+            =?charset?enc?Encoded word?= where enc is either 'Q' or 'q' for 
+            quoted-printable and 'B' or 'b' for Base64.
+            </summary>
+            <param name="body">the string to decode.</param>
+            <returns>the decoded string.</returns>
+        </member>
+        <member name="M:NI.Email.Mime.Decoder.DecoderUtil.EncodeWords(System.String)">
+            <summary>
+            Encodes a string as defined by RFC 2047.
+            Encoded words in have the form 
+            =?charset?enc?Encoded word?= where enc is 'Q' or 'q' stands for 
+            quoted-printable and 'B' or 'b' for base64.
+            </summary>
+            <param name="body">the string to encode.</param>
+            <returns>the encoded string.</returns>
+        </member>
+        <member name="T:NI.Email.Mime.Decoder.QuotedPrintableCodec">
+            <summary>
+            Class for encoding and decoding a string to QuotedPrintable
+            RFC 1521 http://www.ietf.org/rfc/rfc1521.txt
+            RFC 2045 http://www.ietf.org/rfc/rfc2045.txt
+            Date: 2006-03-23
+            Author: Kevin Spaun
+            Company: SPAUN Informationstechnik GmbH - http://www.spaun-it.com/
+            Feedback: kspaun@spaun-it.de
+            License: This piece of code comes with no guaranties. You can use it for whatever you want for free.
+            
+            Note: class was modified by [tsu]basa (tsubasa@newtonideas.com)
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Decoder.QuotedPrintableCodec.Encode(System.String)">
+            <summary>
+            Encodes a string to QuotedPrintable
+            </summary>
+            <param name="toEncode">String to encode</param>
+            <returns>QuotedPrintable encoded string</returns>
+        </member>
+        <member name="M:NI.Email.Mime.Decoder.QuotedPrintableCodec.Encode(System.String,System.Text.Encoding)">
+            <summary>
+            Encodes a string to QuotedPrintable
+            </summary>
+            <param name="toEncode">String to encode</param>
+            <returns>QuotedPrintable encoded string</returns>
+        </member>
+        <member name="M:NI.Email.Mime.Decoder.QuotedPrintableCodec.Encode(System.Byte[])">
+            <summary>
+            Encodes a byte array to QuotedPrintable
+            </summary>
+            <param name="bytes">Byte array to encode</param>
+            <returns>QuotedPrintable encoded string</returns>
+            for reference see RFC2045 6.7
+        </member>
+        <member name="M:NI.Email.Mime.Decoder.QuotedPrintableCodec.Decode(System.String)">
+            <summary>
+            Decodes a QuotedPrintable encoded string 
+            </summary>
+            <param name="toDecode">The encoded string to decode</param>
+            <returns>Decoded string</returns>
+        </member>
+        <member name="T:NI.Email.Mime.Decoder.QuotedPrintableInputStream">
+            <summary>
+            Performs Quoted-Printable decoding on an underlying stream.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Decoder.QuotedPrintableInputStream.PopulatePushbackQueue">
+            <summary>
+            Pulls bytes out of the underlying stream and places them in the
+            pushback queue.  This is necessary (vs. reading from the
+            underlying stream directly) to detect and filter out "transport
+            padding" whitespace, i.e., all whitespace that appears immediately
+            before a CRLF.
+            </summary>
+            <exception cref="T:System.IO.IOException">Underlying stream threw IOException.</exception>
+        </member>
+        <member name="M:NI.Email.Mime.Decoder.QuotedPrintableInputStream.FillBuffer">
+             <summary>
+             Causes the pushback queue to get populated if it is empty, then
+             consumes and decodes bytes out of it until one or more bytes are
+             in the byte queue.  This decoding step performs the actual QP
+             decoding.
+            
+             @throws IOException Underlying stream threw IOException.
+             </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Decoder.QuotedPrintableInputStream.AsciiCharToNumericValue(System.Byte)">
+            <summary>
+            Converts '0' => 0, 'A' => 10, etc.
+            </summary>
+            <param name="c">ASCII character value.</param>
+            <returns>Numeric value of hexadecimal character.</returns>
+        </member>
+        <member name="T:NI.Email.Mime.EOLConvertingInputStream">
+            <summary>
+            InputStream which converts <c>\r</c>
+            bytes not followed by <c>\n</c> and <c>\n</c> not 
+            preceded by <c>\r</c> to <c>\r\n</c>.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.EOLConvertingInputStream.#ctor(System.IO.Stream)">
+            <summary>
+            Creates a new <c>EOLConvertingInputStream</c>
+            instance converting bytes in the given <c>InputStream</c>.
+            The flag <c>CONVERT_BOTH</c> is the default.
+            </summary>
+            <param name="inStream">the <c>InputStream</c> to read from.</param>
+        </member>
+        <member name="M:NI.Email.Mime.EOLConvertingInputStream.#ctor(System.IO.Stream,NI.Email.Mime.EOLConvertingInputStream.BehaviourType)">
+            <summary>
+            Creates a new <c>EOLConvertingInputStream</c>
+            instance converting bytes in the given <c>InputStream</c>.
+            
+            @param in the <c>InputStream</c> to read from.
+            @param flags one of <c>CONVERT_CR</c>, <c>CONVERT_LF</c> or
+                   <c>CONVERT_BOTH</c>.
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "F:NI.Email.Mime.EOLConvertingInputStream.BehaviourType.ConvertCR" -->
+        <!-- Badly formed XML comment ignored for member "F:NI.Email.Mime.EOLConvertingInputStream.BehaviourType.ConvertLF" -->
+        <!-- Badly formed XML comment ignored for member "F:NI.Email.Mime.EOLConvertingInputStream.BehaviourType.ConvertBoth" -->
+        <member name="T:NI.Email.Mime.Field.MimeField">
+            <summary>
+            The base class of all field classes.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Field.MimeField.Parse(System.String)">
+            <summary>
+            Parsers the given string and returns an instance of the 
+            <c>Field</c> class. The type of the class returned depends on
+            the field name:
+            <table>
+                 <tr>
+                     <td><em>Field name</em></td><td><em>Class returned</em></td>
+                     <td>Content-Type</td><td>org.mime4j.field.ContentTypeField</td>
+                     <td>other</td><td>org.mime4j.field.UnstructuredField</td>
+                 </tr>
+            </table>
+            </summary>
+            <param name="s">the string to parse.</param>
+            <returns>a <c>Field</c> instance.</returns>
+            <exception cref="T:System.ArgumentException">on parse errors.</exception>
+        </member>
+        <member name="M:NI.Email.Mime.Field.MimeField.ParseBody(System.String)">
+            <summary>
+            Parses the field body.
+            
+            @param body the field unfolded body.
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Field.MimeField.Name">
+            <summary>
+            Gets the name of the field (<c>Subject</c>, 
+            <c>From</c>, etc).
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Field.MimeField.Raw">
+            <summary>
+            Gets the original raw field string.
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Field.MimeField.Body">
+            <summary>
+            Gets the unfolded, unparsed and possibly encoded (see RFC 2047) field 
+            body string.
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Field.MimeField.IsContentType">
+            <summary>
+            Determines if this is a <c>Content-Type</c> field.
+            </summary>
+            <remarks>
+            Returns <c>true</c> if this is a <c>Content-Type</c> field,
+            <c>false</c> otherwise.
+            </remarks>
+        </member>
+        <member name="P:NI.Email.Mime.Field.MimeField.IsSubject">
+            <summary>
+            Determines if this is a <c>Subject</c> field.
+            </summary>
+            <remarks>
+            Returns <c>true</c> if this is a <c>Subject</c> field,
+            <c>false</c> otherwise.
+            </remarks>
+        </member>
+        <member name="P:NI.Email.Mime.Field.MimeField.IsFrom">
+            <summary>
+            Determines if this is a <c>From</c> field.
+            </summary>
+            <remarks>
+            Returns <c>true</c> if this is a <c>From</c> field,
+            <c>false</c> otherwise.
+            </remarks>
+        </member>
+        <member name="P:NI.Email.Mime.Field.MimeField.IsTo">
+            <summary>
+            Determines if this is a <c>To</c> field.
+            </summary>
+            <remarks>
+            Returns <c>true</c> if this is a <c>To</c> field,
+            <c>false</c> otherwise.
+            </remarks>
+        </member>
+        <member name="T:NI.Email.Mime.Field.Address.Address">
+            <summary>
+            The abstract base for classes that represent RFC2822 addresses.
+            This includes groups and mailboxes.
+            
+            Currently, no public methods are introduced on this class.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Field.Address.Address.AddMailboxesTo(System.Collections.ArrayList)">
+            <summary>
+            Adds any mailboxes represented by this address
+            into the given ArrayList. Note that this method
+            has default (package) access, so a doAddMailboxesTo
+            method is needed to allow the behavior to be
+            overridden by subclasses.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Field.Address.Address.DoAddMailboxesTo(System.Collections.ArrayList)">
+            <summary>
+            Adds any mailboxes represented by this address
+            into the given ArrayList. Must be overridden by
+            concrete subclasses.
+            </summary>
+        </member>
+        <member name="T:NI.Email.Mime.Field.Address.AddressList">
+            <summary>
+            An immutable, random-access list of Address objects.
+            </summary>
+        </member>
+        <member name="T:NI.Email.Mime.Field.Address.IComplexAddress">
+            <summary>
+            It's marker interface for classes, that hold more than one addresses
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Field.Address.AddressList.#ctor(System.Collections.ArrayList,System.Boolean)">
+            <summary>
+            @param addresses An ArrayList that contains only Address objects. 
+            @param dontCopy true iff it is not possible for the addresses ArrayList to be modified by someone else.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Field.Address.AddressList.Flatten">
+            <summary>
+            Returns a flat list of all mailboxes represented
+            in this address list. Use this if you don't care
+            about grouping. 
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Field.Address.AddressList.Parse(System.String)">
+            <summary>
+            Parse the address list string, such as the value 
+            of a From, To, Cc, Bcc, Sender, or Reply-To
+            header.
+            
+            The string MUST be unfolded already.
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Field.Address.AddressList.Count">
+            <summary>
+            The number of elements in this list.
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Field.Address.AddressList.Item(System.Int32)">
+            <summary>
+            Gets an address. 
+            </summary>
+        </member>
+        <member name="T:NI.Email.Mime.Field.Address.Builder">
+            <summary>
+            Transforms the address string representation into internal structure (AddressList)
+            </summary>
+        </member>
+        <member name="T:NI.Email.Mime.Field.Address.DomainList">
+            <summary>
+            An immutable, random-access list of Strings (that 
+            are supposedly domain names or domain literals).
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Field.Address.DomainList.#ctor(System.Collections.ArrayList,System.Boolean)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="domains">An ArrayList that contains only String objects.</param>
+            <param name="dontCopy">true if it is not possible for the domains ArrayList to be modified by someone else.</param>
+        </member>
+        <member name="M:NI.Email.Mime.Field.Address.DomainList.ToRouteString">
+            <summary>
+            Returns the list of domains formatted as a route
+            string (not including the trailing ':'). 
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Field.Address.DomainList.Count">
+            <summary>
+            The number of elements in this list.
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Field.Address.DomainList.Item(System.Int32)">
+            <summary>
+            Gets the domain name or domain literal at the
+            specified index.
+            </summary>
+            <exception cref="!:IndexOutOfBoundsException">If index is &lt; 0 or &gt;= size().</exception>
+        </member>
+        <member name="T:NI.Email.Mime.Field.Address.Group">
+            <summary>
+            A named group of zero or more mailboxes.  
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Field.Address.Group.#ctor(System.String,NI.Email.Mime.Field.Address.MailboxList)">
+            <summary>
+            @param name The group name.
+            @param mailboxes The mailboxes in this group.
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Field.Address.Group.Name">
+            <summary>
+            Returns the group name.
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Field.Address.Group.Mailboxes">
+            <summary>
+            Returns the mailboxes in this group.
+            </summary>
+        </member>
+        <member name="T:NI.Email.Mime.Field.Address.Mailbox">
+            <summary>
+            Represents a single e-mail address. 
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Field.Address.Mailbox.#ctor(System.String,System.String)">
+            <summary>
+            Creates a mailbox without a route. Routes are obsolete.
+            </summary>
+            <param name="domain">The part of the e-mail address to the right of the "@".</param>
+            <param name="localPart">The part of the e-mail address to the left of the "@".</param>
+        </member>
+        <member name="M:NI.Email.Mime.Field.Address.Mailbox.#ctor(NI.Email.Mime.Field.Address.DomainList,System.String,System.String)">
+            <summary>
+            Creates a mailbox with a route. Routes are obsolete.
+            </summary>
+            <param name="domain">The part of the e-mail address to the right of the "@".</param>
+            <param name="localPart">The part of the e-mail address to the left of the "@".</param>
+            <param name="route">The zero or more domains that make up the route. Can be null.</param>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:NI.Email.Mime.Field.Address.Mailbox.GetAddressString(System.Boolean)" -->
+        <member name="P:NI.Email.Mime.Field.Address.Mailbox.Route">
+            <summary>
+            Returns the route list.
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Field.Address.Mailbox.LocalPart">
+            <summary>
+            Returns the left part of the e-mail address 
+            (before "@").
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Field.Address.Mailbox.Domain">
+            <summary>
+            Returns the right part of the e-mail address 
+            (after "@").
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Field.Address.Mailbox.AddressString">
+            <summary>
+            Formats the address as a string, not including
+            the route.
+            </summary>
+        </member>
+        <member name="T:NI.Email.Mime.Field.Address.MailboxList">
+            <summary>
+            An immutable, random-access list of Mailbox objects.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Field.Address.MailboxList.#ctor(System.Collections.ArrayList,System.Boolean)">
+            <summary>
+            @param mailboxes An ArrayList that contains only Mailbox objects. 
+            @param dontCopy true iff it is not possible for the mailboxes ArrayList to be modified by someone else.
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Field.Address.MailboxList.Count">
+            <summary>
+            The number of elements in this list.
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Field.Address.MailboxList.Item(System.Int32)">
+            <summary>
+            Gets an address. 
+            </summary>
+        </member>
+        <member name="T:NI.Email.Mime.Field.Address.NamedMailbox">
+            <summary>
+            A Mailbox that has a name/description.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Field.Address.NamedMailbox.#ctor(System.String,System.String,System.String)">
+            <summary>
+            <see cref="M:NI.Email.Mime.Field.Address.Mailbox.#ctor(System.String,System.String)"/>
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Field.Address.NamedMailbox.#ctor(System.String,NI.Email.Mime.Field.Address.DomainList,System.String,System.String)">
+            <summary>
+            <see cref="M:NI.Email.Mime.Field.Address.Mailbox.#ctor(NI.Email.Mime.Field.Address.DomainList,System.String,System.String)"/>
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Field.Address.NamedMailbox.#ctor(System.String,NI.Email.Mime.Field.Address.Mailbox)">
+            <summary>
+            Creates a named mailbox based on an unnamed mailbox. 
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Field.Address.NamedMailbox.GetAddressString(System.Boolean)">
+            <summary>
+            Same features (or problems) as Mailbox.getAddressString(bool),
+            only more so.
+            <see cref="!:AddressString"/>
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Field.Address.NamedMailbox.Name">
+            <summary>
+            Returns the name of the mailbox. 
+            </summary>
+        </member>
+        <member name="T:NI.Email.Mime.Field.ContentTransferEncodingField">
+            <summary>
+            Represents a <c>Content-Transfer-Encoding</c> field.
+            </summary>
+        </member>
+        <member name="F:NI.Email.Mime.Field.ContentTransferEncodingField.Encoding7Bit">
+            <summary>
+            The <c>7bit</c> encoding.
+            </summary>
+        </member>
+        <member name="F:NI.Email.Mime.Field.ContentTransferEncodingField.Encoding8Bit">
+            <summary>
+            The <c>8bit</c> encoding.
+            </summary>
+        </member>
+        <member name="F:NI.Email.Mime.Field.ContentTransferEncodingField.EncodingBinary">
+            <summary>
+            The <c>binary</c> encoding.
+            </summary>
+        </member>
+        <member name="F:NI.Email.Mime.Field.ContentTransferEncodingField.EncodingQuotedPrintable">
+            <summary>
+            The <c>quoted-printable</c> encoding.
+            </summary>
+        </member>
+        <member name="F:NI.Email.Mime.Field.ContentTransferEncodingField.EncodingBase64">
+            <summary>
+            The <c>base64</c> encoding.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Field.ContentTransferEncodingField.ParseBody(System.String)">
+            <summary>
+            <see cref="M:NI.Email.Mime.Field.MimeField.ParseBody(System.String)"/>
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Field.ContentTransferEncodingField.GetEncoding(NI.Email.Mime.Field.ContentTransferEncodingField)">
+            <summary>
+            Gets the encoding of the given field if. Returns the default 
+            <c>7bit</c> if not set or if
+            <c>f</c> is <c>null</c>.
+            </summary>
+            <returns>the encoding.</returns>
+        </member>
+        <member name="P:NI.Email.Mime.Field.ContentTransferEncodingField.Encoding">
+            <summary>
+            Gets the encoding defined in this field.
+            </summary>
+            <remarks>Returns the encoding or an empty string if not set.</remarks>
+        </member>
+        <member name="T:NI.Email.Mime.Field.ContentTypeField">
+            <summary>
+            Represents a <c>Content-Type</c> field.
+            </summary>
+        </member>
+        <member name="F:NI.Email.Mime.Field.ContentTypeField.TypeMultipartPrefix">
+            <summary>
+            The prefix of all <c>multipart</c> MIME types.
+            </summary>
+        </member>
+        <member name="F:NI.Email.Mime.Field.ContentTypeField.TypeMultipartDigest">
+            <summary>
+            The <c>multipart/digest</c> MIME type.
+            </summary>
+        </member>
+        <member name="F:NI.Email.Mime.Field.ContentTypeField.TypeMultipartMixed">
+            <summary>
+            The <c>multipart/mixed</c> MIME type.
+            </summary>
+        </member>
+        <member name="F:NI.Email.Mime.Field.ContentTypeField.TypeMultipartAlternative">
+            <summary>
+            The <c>multipart/alternative</c> MIME type.
+            </summary>
+        </member>
+        <member name="F:NI.Email.Mime.Field.ContentTypeField.TypeTextPlain">
+            <summary>
+            The <c>text/plain</c> MIME type.
+            </summary>
+        </member>
+        <member name="F:NI.Email.Mime.Field.ContentTypeField.TypeTextHtml">
+            <summary>
+            The <c>text/html</c> MIME type.
+            </summary>
+        </member>
+        <member name="F:NI.Email.Mime.Field.ContentTypeField.TypeMessageRFC822">
+            <summary>
+            The <c>message/rfc822</c> MIME type.
+            </summary>
+        </member>
+        <member name="F:NI.Email.Mime.Field.ContentTypeField.ParamBoundary">
+            <summary>
+            The name of the <c>boundary</c> parameter.
+            </summary>
+        </member>
+        <member name="F:NI.Email.Mime.Field.ContentTypeField.ParamCharset">
+            <summary>
+            The name of the <c>charset</c> parameter.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Field.ContentTypeField.GetMimeType(NI.Email.Mime.Field.ContentTypeField,NI.Email.Mime.Field.ContentTypeField)">
+            <summary>
+            Gets the MIME type defined in the child's 
+            Content-Type field or derives a MIME type from the parent 
+            if child is <c>null</c> or hasn't got a MIME type value set. 
+            If child's MIME type is multipart but no boundary
+            has been set the MIME type of child will be derived from
+            the parent.
+            </summary>
+            <param name="child">the child.</param>
+            <param name="parent">the parent.</param>
+            <returns>the MIME type.</returns>
+        </member>
+        <member name="M:NI.Email.Mime.Field.ContentTypeField.GetParameter(System.String)">
+            <summary>
+            Gets the value of a parameter. Parameter names are case-insensitive.
+            </summary>
+            <param name="name">the name of the parameter to get.</param>
+            <returns>the parameter value or <c>null</c> if not set.</returns>
+        </member>
+        <member name="M:NI.Email.Mime.Field.ContentTypeField.GetCharset(NI.Email.Mime.Field.ContentTypeField)">
+            <summary>
+            Gets the value of the <c>charset</c> parameter if set for the
+            given field. Returns the default <c>us-ascii</c> if not set or if
+            <c>f</c> is <c>null</c>.
+            </summary>
+            <remarks>
+            Returns the <c>charset</c> parameter value.
+            </remarks>
+        </member>
+        <member name="M:NI.Email.Mime.Field.ContentTypeField.IsMimeType(System.String)">
+            <summary>
+            Determines if the MIME type of this field matches the given one. 
+            </summary>
+            <param name="mimeType">the MIME type to match against.</param>
+            <returns>
+            Returns <c>true</c> if the MIME type of this field matches, 
+            <c>false</c> otherwise. 
+            </returns>
+        </member>
+        <member name="P:NI.Email.Mime.Field.ContentTypeField.ParseException">
+            <summary>
+            Gets the exception that was raised during parsing of
+            the field value, if any; otherwise, null.
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Field.ContentTypeField.MimeType">
+            <summary>
+            Gets the MIME type defined in this Content-Type field.
+            </summary>
+            <remarks>Returns the MIME type or an empty string if not set</remarks>
+        </member>
+        <member name="P:NI.Email.Mime.Field.ContentTypeField.Parameters">
+            <summary>
+            Gets all parameters.
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Field.ContentTypeField.Boundary">
+            <summary>
+            Gets the value of the <c>boundary</c> parameter if set.
+            </summary>
+            <remarks>
+            Returns the <c>boundary</c> parameter value or <c>null</c> 
+            if not set.
+            </remarks>
+        </member>
+        <member name="P:NI.Email.Mime.Field.ContentTypeField.Charset">
+            <summary>
+            Gets the value of the <c>charset</c> parameter if set.
+            </summary>
+            <remarks>
+            Returns the <c>charset</c> parameter value or <c>null</c> 
+            if not set.
+            </remarks>
+        </member>
+        <member name="P:NI.Email.Mime.Field.ContentTypeField.IsMultipart">
+            <summary>
+            Determines if the MIME type of this field is <c>multipart/*</c>.
+            </summary>
+            <remarks>
+            Returns <c>true</c> if this field is has a <c>multipart/*</c>
+            MIME type, <c>false</c> otherwise. 
+            </remarks>
+        </member>
+        <member name="M:NI.Email.Mime.Field.MailboxField.ParseBody(System.String)">
+            <summary>
+            Attempts to parse the body into an e-mail address.
+            If address is invalid, it will be set to null.
+            </summary>
+        </member>
+        <member name="T:NI.Email.Mime.Field.UnstructuredField">
+            <summary>
+            Simple unstructured field such as <c>Subject</c>.
+            </summary>
+        </member>
+        <member name="T:NI.Email.Mime.Message.AbstractBody">
+            <summary>
+            Abstract <c>Body</c> implementation providing the parent
+            functionality required by bodies.
+            </summary>
+        </member>
+        <member name="T:NI.Email.Mime.Message.IBody">
+            <summary>
+            Encapsulates the body of an entity (see RFC 2045).
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Message.IBody.WriteTo(System.IO.Stream)">
+            <summary>
+            Writes this body to the given stream in MIME message format.
+            </summary>
+            <param name="outputStream">the stream to write to.</param>
+            <exception cref="T:System.IO.IOException">on I/O errors.</exception>
+        </member>
+        <member name="P:NI.Email.Mime.Message.IBody.Parent">
+            <summary>
+            Get or set the parent of this body.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Message.AbstractBody.WriteTo(System.IO.Stream)">
+            <summary>
+            Writes current <c>Entity</c> to output stream
+            </summary>
+            <param name="outStream">output stream</param>
+        </member>
+        <member name="P:NI.Email.Mime.Message.AbstractBody.Parent">
+            <summary>
+            Gets the parent entity of this entity.
+            Returns <c>null</c> if this is the root entity.
+            </summary>
+        </member>
+        <member name="T:NI.Email.Mime.Message.BodyPart">
+            <summary>
+            Represents a MIME body part  (see RFC 2045).
+            </summary>
+        </member>
+        <member name="T:NI.Email.Mime.Message.Entity">
+            <summary>
+            MIME entity. An entity has a header and a body (see RFC 2045).
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Message.Entity.IsMimeType(System.String)">
+            <summary>
+            Determines if the MIME type of this <c>Entity</c> matches the
+            given one. MIME types are case-insensitive.
+            </summary>
+            <param name="type">the MIME type to match against.</param>
+            <returns><c>true</c> on match, <c>false</c> otherwise.</returns>
+        </member>
+        <member name="M:NI.Email.Mime.Message.Entity.WriteTo(System.IO.Stream)">
+            <summary>
+            Writes current <c>Entity</c> to output stream
+            </summary>
+            <param name="outStream">output stream</param>
+        </member>
+        <member name="P:NI.Email.Mime.Message.Entity.Parent">
+            <summary>
+            Gets the parent entity of this entity.
+            Returns <c>null</c> if this is the root entity.
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Message.Entity.Header">
+            <summary>
+            Gets the entity header.
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Message.Entity.Body">
+            <summary>
+            Gets the body of this entity.
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Message.Entity.MimeType">
+            <summary>
+            Determines the MIME type of this <c>Entity</c>. The MIME type
+            is derived by looking at the parent's Content-Type field if no
+            Content-Type field is set for this <c>Entity</c>.
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Message.Entity.Charset">
+            <summary>
+            Determines the MIME character set encoding of this <c>Entity</c>.
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Message.Entity.ContentTransferEncoding">
+            <summary>
+            Determines the transfer encoding of this <c>Entity</c>.
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Message.Entity.IsMultipart">
+            <summary>
+            Determines if the MIME type of this <c>Entity</c> is
+            <c>multipart/*</c>. Since multipart-entities must have
+            a boundary parameter in the <c>Content-Type</c> field this
+            method returns <c>false</c> if no boundary exists.
+            </summary>
+        </member>
+        <member name="T:NI.Email.Mime.Message.Header">
+            <summary>
+            The header of an entity (see RFC 2045).
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Message.Header.#ctor">
+            <summary>
+            Creates a new empty <c>Header</c>.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Message.Header.#ctor(System.IO.Stream)">
+            <summary>
+            Creates a new <c>Header</c> from the specified stream.
+            
+            @param is the stream to read the header from.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Message.Header.AddField(NI.Email.Mime.Field.MimeField)">
+            <summary>
+            Adds a field to the end of the list of fields.
+            </summary>
+            <param name="field">the field to add.</param>
+        </member>
+        <member name="M:NI.Email.Mime.Message.Header.GetField(System.String)">
+            <summary>
+            Gets a <c>Field</c> given a field name. If there are multiple
+            such fields defined in this header the first one will be returned.
+            </summary>
+            <param name="name">the field name (e.g. From, Subject).</param>
+            <returns>the field or <c>null</c> if none found.</returns>
+        </member>
+        <member name="M:NI.Email.Mime.Message.Header.GetFields(System.String)">
+            <summary>
+            Gets all <c>Field</c>s having the specified field name. 
+            </summary>
+            <param name="name">the field name (e.g. From, Subject).</param>
+            <returns>the list of fields.</returns>
+        </member>
+        <member name="P:NI.Email.Mime.Message.Header.Fields">
+            <summary>
+            Gets the fields of this header. The returned list will not be
+            modifiable.
+            
+            Returns the list of <c>Field</c> objects.
+            </summary>
+        </member>
+        <member name="T:NI.Email.Mime.Message.IBinaryBody">
+            <summary>
+            Interface implemented by bodies containing binary data.
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Message.IBinaryBody.Reader">
+            <summary>
+            Gets a <c>InputStream</c> which reads the bytes of the
+            body.
+            </summary>
+            <exception cref="T:System.IO.IOException">on I/O errors.</exception>
+        </member>
+        <member name="T:NI.Email.Mime.Message.ITextBody">
+            <summary>
+            Encapsulates the contents of a <c>text/*</c> entity body.
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Message.ITextBody.Reader">
+            <summary>
+            Gets a <c>Reader</c> which may be used to read out the contents
+            of this body.
+            </summary>
+            <exception cref="T:System.IO.IOException">on I/O errors.</exception>
+        </member>
+        <member name="T:NI.Email.Mime.Message.MemoryBinaryBody">
+            <summary>
+            Binary body stored in memory.
+            </summary>
+        </member>
+        <member name="T:NI.Email.Mime.Message.MemoryTextBody">
+            <summary>
+            Text body stored in memory.
+            </summary>
+        </member>
+        <member name="T:NI.Email.Mime.Message.MimeMessage">
+            <summary>
+            Represents a MIME message. The following code parses a stream into a 
+            <c>Message</c> object.
+            
+            <code>
+            Message msg = new Message(new FileStream("mime.msg"));
+            </code>
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Message.MimeMessage.#ctor">
+            <summary>
+            Creates a new empty <c>Message</c>.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Message.MimeMessage.#ctor(System.IO.Stream,System.Boolean)">
+            <summary>
+            Parses the specified MIME message stream into a <c>Message</c>
+            instance.
+            </summary>
+            <param name="inputStream">the stream to parse.</param>
+            <param name="useTempFileStorage">indicates whether we are using temporary file for storing bodies instead of memory streams</param>
+            <exception cref="T:System.IO.IOException">on I/O errors.</exception>
+        </member>
+        <member name="M:NI.Email.Mime.Message.MimeMessage.GetTextBodyContent">
+            <summary>
+            Return first text body content.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Message.MimeMessage.GetTextBodyContent(System.String)">
+            <summary>
+            Returns first matched body content with specified body part.
+            </summary>
+            <param name="preferredContentType">content type like 'text/plain' or 'text/html'</param>
+        </member>
+        <member name="P:NI.Email.Mime.Message.MimeMessage.Subject">
+            <summary>
+            Gets the <c>Subject</c> field.
+            </summary>
+            <remarks>
+            Return the <c>Subject</c> field or <c>null</c> if it
+            doesn't exist.
+            </remarks>
+        </member>
+        <member name="T:NI.Email.Mime.Message.Multipart">
+            <summary>
+            Represents a MIME multipart body (see RFC 2045).A multipart body has a 
+            ordered list of body parts. The multipart body also has a preamble and
+            epilogue. The preamble consists of whatever characters appear before the 
+            first body part while the epilogue consists of whatever characters come
+            after the last body part.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Message.Multipart.#ctor">
+            <summary>
+            Creates a new empty <c>Multipart</c> instance.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Message.Multipart.AddBodyPart(NI.Email.Mime.Message.BodyPart)">
+            <summary>
+            Adds a body part to the end of the list of body parts.
+            </summary>
+            <param name="bodyPart">the body part.</param>
+        </member>
+        <member name="P:NI.Email.Mime.Message.Multipart.SubType">
+            <summary>
+            Gets the multipart sub-type. E.g. <c>alternative</c> (the default)
+            or <c>parallel</c>. See RFC 2045 for common sub-types and their
+            meaning.
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Message.Multipart.Epilogue">
+            <summary>
+            Gets the epilogue.
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.Message.Multipart.BodyParts">
+            <summary>
+            Gets the list of body parts. The list is immutable.
+            </summary>
+            <remarks>Returns the list of <c>BodyPart</c> objects.</remarks>
+        </member>
+        <member name="P:NI.Email.Mime.Message.Multipart.Preamble">
+            <summary>
+            Gets the preamble.
+            </summary>
+        </member>
+        <member name="T:NI.Email.Mime.Message.TempFileTextBody">
+            <summary>
+            Text body stored in temp file.
+            </summary>
+        </member>
+        <member name="T:NI.Email.Mime.MimeBoundaryInputStream">
+            <summary>
+            Stream that constrains itself to a single MIME body part.
+            After the stream ends (i.e. read() returns -1) <see cref="P:NI.Email.Mime.MimeBoundaryInputStream.HasMoreParts"/>
+            can be used to determine if a final boundary has been seen or not.
+            If <see cref="P:NI.Email.Mime.MimeBoundaryInputStream.ParentEOF"/> is <c>true</c> an unexpected end of stream
+            has been detected in the parent stream.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.MimeBoundaryInputStream.#ctor(System.IO.Stream,System.String)">
+            <summary>
+            Creates a new MimeBoundaryInputStream.
+            </summary>
+            <param name="boundary">Boundary string (not including leading hyphens).</param>
+            <param name="s">The underlying stream.</param>
+        </member>
+        <member name="M:NI.Email.Mime.MimeBoundaryInputStream.Consume">
+            <summary>
+            Consumes all unread bytes of this stream. After a call to this method
+            this stream will have reached EOF.
+            </summary>
+            <exception cref="T:System.IO.IOException">on I/O errors.</exception>
+        </member>
+        <member name="M:NI.Email.Mime.MimeBoundaryInputStream.ReadByte">
+            <summary>
+            Read one byte from stream
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.MimeBoundaryInputStream.UnderlyingStream">
+            <summary>
+            Get underlying pushback stream
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.MimeBoundaryInputStream.HasMoreParts">
+            <summary>
+            Determines if the underlying stream has more parts (this stream has
+            not seen an end boundary).
+            </summary>
+            <remarks>
+            Returns <c>true</c> if there are more parts in the underlying 
+            stream, <c>false</c> otherwise.
+            </remarks>
+        </member>
+        <member name="P:NI.Email.Mime.MimeBoundaryInputStream.ParentEOF">
+            <summary>
+            Determines if the parent stream has reached EOF
+            </summary>
+            <remarks>
+            Returns <c>true</c>  if EOF has been reached for the parent stream, 
+            <c>false</c> otherwise.
+            </remarks>
+        </member>
+        <!-- Badly formed XML comment ignored for member "T:NI.Email.Mime.MimeStreamParser" -->
+        <member name="M:NI.Email.Mime.MimeStreamParser.#ctor">
+            <summary>
+            Creates a new <c>MimeStreamParser</c> instance.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.MimeStreamParser.Parse(System.IO.Stream)">
+            <summary>
+            Parses a stream of bytes containing a MIME message.
+            </summary>
+            <param name="inStream">the stream to parse.</param>
+            <exception cref="T:System.IO.IOException">on I/O errors.</exception>
+        </member>
+        <member name="M:NI.Email.Mime.MimeStreamParser.Stop">
+            <summary>
+            Finishes the parsing and stops reading lines.
+            NOTE: No more lines will be parsed but the parser
+            will still call 
+            <see cref="M:NI.Email.Mime.IContentHandler.EndMultipart"/>,
+            <see cref="M:NI.Email.Mime.IContentHandler.EndBodyPart"/>,
+            <see cref="M:NI.Email.Mime.IContentHandler.EndMessage"/>,
+            etc to match previous calls
+            to 
+            <see cref="M:NI.Email.Mime.IContentHandler.StartMultipart(NI.Email.Mime.BodyDescriptor)"/>
+            <see cref="M:NI.Email.Mime.IContentHandler.StartBodyPart"/>,
+            <see cref="M:NI.Email.Mime.IContentHandler.StartMessage"/>, etc.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.MimeStreamParser.ParseEntity(System.IO.Stream)">
+            <summary>
+            Parses an entity which consinputStreamts of a header followed by a body containing
+            arbitrary data, body parts or an embedded message.
+            </summary>
+            <param name="inputStream">the stream to parse.</param>
+            <exception cref="T:System.IO.IOException">on I/O errors.</exception>
+        </member>
+        <member name="M:NI.Email.Mime.MimeStreamParser.ParseHeader(System.IO.Stream)">
+            <summary>
+            Parses a header.
+            </summary>
+            <param name="inputStream">the stream to parse.</param>
+            <returns>a <c>BodyDescriptor</c> describing the body following the header.</returns>
+        </member>
+        <member name="M:NI.Email.Mime.MimeStreamParser.SetContentHandler(NI.Email.Mime.IContentHandler)">
+            <summary>
+            Sets the <c>ContentHandler</c> to use when reporting 
+            parsing events.
+            </summary>
+            <param name="h">the <c>ContentHandler</c>.</param>
+        </member>
+        <member name="P:NI.Email.Mime.MimeStreamParser.Raw">
+            <summary>
+            Determines if this parser is currently in raw mode.
+            Enables or disables raw mode. In raw mode all future entities 
+            (messages or body parts) in the stream will be reported to the
+            <see cref="M:NI.Email.Mime.IContentHandler.Raw(System.IO.Stream)"/> handler method only.
+            The stream will contain the entire unparsed entity contents 
+            including header fields and whatever is in the body.
+            </summary>
+        </member>
+        <member name="T:NI.Email.Mime.RootInputStream">
+            <summary>
+            <c>InputStream</c> used by the parser to wrap the original user
+            supplied stream. This stream keeps track of the current line number and
+            can also be truncated. When truncated the stream will appear to have
+            reached end of file. This is used by the parser's 
+            <see cref="M:NI.Email.Mime.MimeStreamParser.Stop"/> method.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.RootInputStream.#ctor(System.IO.Stream)">
+            <summary>
+            Creates a new <c>RootInputStream</c>.
+            
+            @param in the stream to read from.
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.RootInputStream.Truncate">
+            <summary>
+            Truncates this <c>InputStream</c>. After this call any 
+            call to <see cref="M:NI.Email.Mime.RootInputStream.ReadByte"/> or 
+            <see cref="M:NI.Email.Mime.RootInputStream.Read(System.Byte[],System.Int32,System.Int32)"/> will return
+            -1 as if end-of-file had been reached.
+            </summary>
+        </member>
+        <member name="P:NI.Email.Mime.RootInputStream.LineNumber">
+            <summary>
+            Gets the current line number starting at 1 
+            (the number of <c>\r\n</c> read so far plus 1).
+            </summary>
+        </member>
+        <member name="T:NI.Email.Mime.Util.CharsetUtil">
+            <summary>
+            Utility class for working with character sets. 
+            </summary>
+        </member>
+        <member name="M:NI.Email.Mime.Util.CharsetUtil.IsEncodingSupported(System.String)">
+            <summary>
+            Determines if the VM supports encoding (chars to bytes) the 
+            specified character set. NOTE: the given character set name may 
+            not be known to the VM even if this method returns <c>true</c>.
+            Use <see cref="M:NI.Email.Mime.Util.CharsetUtil.ToPlatformCharset(System.String)"/> to get the canonical .NET character
+            set name.
+            </summary>
+            <param name="charsetName">the characters set name.</param>
+            <returns><c>true</c> if encoding is supported, <c>false</c> otherwise.</returns>
+        </member>
+        <member name="M:NI.Email.Mime.Util.CharsetUtil.IsDecodingSupported(System.String)">
+            <summary>
+            Determines if the VM supports decoding (bytes to chars) the 
+            specified character set. NOTE: the given character set name may 
+            not be known to the VM even if this method returns <c>true</c>.
+            Use <see cref="M:NI.Email.Mime.Util.CharsetUtil.ToPlatformCharset(System.String)"/> to get the canonical .NET character
+            set name.
+            </summary>
+            <param name="charsetName">the characters set name.</param>
+            <returns><c>true</c> if decoding is supported, <c>false</c>  otherwise.</returns>
+        </member>
+    </members>
+</doc>

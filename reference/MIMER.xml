@@ -1,0 +1,118 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>MIMER</name>
+    </assembly>
+    <members>
+        <member name="T:MIMER.IEndCriteriaStrategy">
+            <summary>
+            Interface to be used to implement the current algorithm which decides how a 
+            message stream is ended.
+            </summary>
+        </member>
+        <member name="M:MIMER.IEndCriteriaStrategy.IsEndReached(System.Char[],System.Int32)">
+            <param name="data">The currently read characters from stream,
+            since last read sequence.</param>
+            <param name="size">The amount of data currently within the 'data' array.</param>
+            <returns>Should return true as soon as the data array meets the wanted
+            endcriteria.</returns>
+        </member>
+        <member name="M:MIMER.RFC2045.ContentTypeFieldParser.CompilePattern">
+            <summary>
+            Compiles the underlying Regex object which performes matches
+            when parsing fields.
+            </summary>
+        </member>
+        <member name="M:MIMER.RFC2045.ContentTypeFieldParser.Parse(System.Collections.Generic.IList{MIMER.RFC822.Field}@,System.String@)">
+            <summary>
+            Parses the any content type fields found within argument fieldstring.
+            </summary>
+            <param name="fields">The target list for the parsed fields.</param>
+            <param name="fieldString">The source field string</param>
+        </member>
+        <member name="T:MIMER.RFC2045.NullMessage">
+            <summary>
+            This class should be used instead of null checks.
+            Instanciate a NullMessage instead of returning null.
+            and use IsNull() method to determine if message is empty.
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:MIMER.RFC2045.MailReader.#ctor" -->
+        <!-- Badly formed XML comment ignored for member "M:MIMER.RFC2045.MailReader.#ctor(System.Collections.Generic.IList{MIMER.RFC2045.IDecoder})" -->
+        <!-- Badly formed XML comment ignored for member "M:MIMER.RFC2045.MailReader.#ctor(System.Collections.Generic.IList{MIMER.RFC2045.IDecoder},MIMER.IFieldParser)" -->
+        <member name="M:MIMER.RFC2045.MailReader.Read(System.IO.Stream@,MIMER.IEndCriteriaStrategy)">
+            <summary>
+            Reads and parses a mail message from the supplied Stream.
+            </summary>
+            <param name="dataStream">The Stream to read from. </param>
+            <param name="endOfMessageCriteria">The refereance to the object which can determine
+            the end of a message.</param>
+            <returns>A new IMailMessage.</returns>
+        </member>
+        <member name="M:MIMER.RFC2045.MailReader.ReadMimeMessage(System.IO.Stream@,MIMER.IEndCriteriaStrategy)">
+            <summary>
+            Reads and parses a mail message from the supplied Stream.
+            </summary>
+            <param name="dataStream">The Stream to read from. </param>
+            <param name="endOfMessageCriteria">The refereance to the object which can determine
+            the end of a message.</param>
+            <returns>A new IMimeMailMessage.</returns>
+        </member>
+        <member name="P:MIMER.RFC2045.Message.From">
+            <summary>
+            The adress of this message sender.
+            </summary>
+        </member>
+        <member name="P:MIMER.RFC2045.Message.To">
+            <summary>
+            A adress to the receiver of this message.
+            Should be a string recognized by mail sending routines.
+            </summary>
+        </member>
+        <member name="P:MIMER.RFC2045.Message.TextMessage">
+            <summary>
+            The text body of this message.
+            If there are multiple bodies of text in this message, 
+            this method returnes the first body of text.
+            </summary>
+        </member>
+        <member name="M:MIMER.RFC2045.Message.ToMailMessage">
+            <summary>
+            Transforms this MIMER.RFC2045.Messsage to a System.Net.Mail.MailMessage
+            </summary>
+            <returns>The new copied message.</returns>
+        </member>
+        <member name="M:MIMER.IFieldParser.Parse(System.Collections.Generic.IList{MIMER.RFC822.Field}@,System.String@)">
+            <summary>
+            Shall parse all fields within the parameter 'fieldString'.
+            </summary>
+            <param name="fields">The list to add parsed fields into.</param>
+            <param name="fieldString">The string which entails the unparsed fields.</param>
+        </member>
+        <member name="M:MIMER.IFieldParser.CompilePattern">
+            <summary>
+            This should be called if we want to add functionality in a child method
+            but let base build/compile it .i.e. 'base.CompilePattern();'
+            </summary>
+        </member>
+        <member name="M:MIMER.IMailReader.Read(System.IO.Stream@,MIMER.IEndCriteriaStrategy)">
+            <summary>
+            Interface implemented by all IMailreaders.
+            </summary>
+            <param name="dataStream">The stream in which the MIME encoded mail is.</param>
+            <param name="endOfMessageCriteria">The interface which points to the method which
+            implements the algorithm which determines when the mail within the stream has ended.</param>
+            <returns></returns>
+        </member>
+        <member name="E:MIMER.IMailReader.DataRead">
+            <summary>
+            The event which shall be raised when data has been read from the Stream.
+            </summary>
+        </member>
+        <member name="P:MIMER.IMailReader.DataReadUpdateInterval">
+            <summary>
+            The interval on which the DataRead event shall occour.
+            </summary>
+        </member>
+    </members>
+</doc>
