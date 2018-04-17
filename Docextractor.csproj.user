@@ -3,7 +3,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <StartAction>Project</StartAction>
     <StartProgram>C:\Program Files %28x86%29\Microsoft Office\Office15\Wordconv.exe</StartProgram>
-    <StartArguments>"C:\Users\yinp\OneDrive - Hewlett Packard Enterprise\ppw\Hire\resumes\2018\lancer-18-04-02"</StartArguments>
+    <StartArguments>"C:\Users\yinp\OneDrive - Hewlett Packard Enterprise\ppw\Hire\resumes\2018\lancer-18-04-12"</StartArguments>
     <StartWorkingDirectory>
     </StartWorkingDirectory>
   </PropertyGroup>

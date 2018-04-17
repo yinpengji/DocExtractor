@@ -38,15 +38,15 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="HtmlAgilityPack, Version=1.7.2.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
-      <HintPath>..\packages\HtmlAgilityPack.1.7.2\lib\Net45\HtmlAgilityPack.dll</HintPath>
+      <HintPath>reference\HtmlAgilityPack.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="MIMER, Version=0.7.0.30223, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\s\MIMER-master\MIMER\bin\Debug\MIMER.dll</HintPath>
+      <HintPath>reference\MIMER.dll</HintPath>
     </Reference>
     <Reference Include="NI.Email.Mime, Version=1.8.1.0, Culture=neutral, PublicKeyToken=d785a8f25ced1fb3, processorArchitecture=MSIL">
-      <HintPath>..\packages\NI.Email.Mime.1.8.1.0\lib\net20\NI.Email.Mime.dll</HintPath>
+      <HintPath>reference\NI.Email.Mime.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
